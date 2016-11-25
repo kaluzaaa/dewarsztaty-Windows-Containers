@@ -2,32 +2,44 @@
     "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "name": {
-            "type": "string",
-            "defaultValue": "devwarsztaty"
+        "labName": {
+            "defaultValue": "devwarsztaty",
+            "type": "String"
         },
-        "regionId": {
-            "type": "string",
-            "defaultValue": "northeurope"
+        "userName": {
+            "defaultValue": "dev",
+            "type": "String"
+        },
+        "password": {
+            "defaultValue": "Passw0rd!",
+            "type": "SecureString"
         }
+    },
+    "variables": {
+        "labSubnetName": "[concat(variables('labVirtualNetworkName'), 'Subnet')]",
+        "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
+        "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
+        "vmPlanNameDokcer01": "docker01",
+        "vmNameDokcer01": "[concat(parameters('labName'), '/', variables('vmPlanNameDokcer01'))]",
+        "vmSizeDocker01": "Standard_DS2_v2",
+        "vmPlanNameDokcer02": "docker02",
+        "vmNameDokcer02": "[concat(parameters('labName'), '/', variables('vmPlanNameDokcer02'))]",
+        "vmSizeDocker02": "Standard_DS2_v2"
     },
     "resources": [
         {
-            "apiVersion": "2016-05-15",
-            "name": "[parameters('name')]",
             "type": "Microsoft.DevTestLab/labs",
-            "location": "[parameters('regionId')]",
+            "name": "[parameters('labName')]",
+            "apiVersion": "2016-05-15",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "labStorageType": "Premium"
             },
             "resources": [
                 {
-                    "apiVersion": "2016-05-15",
-                    "name": "LabVmsShutdown",
                     "type": "schedules",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.DevTestLab/labs', parameters('name'))]"
-                    ],
+                    "name": "LabVmsShutdown",
+                    "apiVersion": "2016-05-15",
                     "properties": {
                         "status": "Enabled",
                         "timeZoneId": "Central Europe Standard Time",
@@ -39,17 +51,149 @@
                             "status": "Disabled",
                             "timeInMinutes": 15
                         }
-                    }
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.DevTestLab/labs', parameters('labName'))]"
+                    ]
                 },
                 {
-                    "apiVersion": "2016-05-15",
-                    "name": "[concat('Dtl', parameters('name'))]",
                     "type": "virtualNetworks",
+                    "name": "[concat('Dtl', parameters('labName'))]",
+                    "apiVersion": "2016-05-15",
                     "dependsOn": [
-                        "[resourceId('Microsoft.DevTestLab/labs', parameters('name'))]"
+                        "[resourceId('Microsoft.DevTestLab/labs', parameters('labName'))]"
                     ]
                 }
             ]
+        },
+        {
+            "type": "Microsoft.DevTestLab/labs/virtualmachines",
+            "name": "[variables('vmNameDokcer02')]",
+            "apiVersion": "2016-05-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+                "notes": "Windows Server 2016 Datacenter",
+                "galleryImageReference": {
+                    "offer": "WindowsServer",
+                    "publisher": "MicrosoftWindowsServer",
+                    "sku": "2016-Datacenter",
+                    "osType": "Windows",
+                    "version": "latest"
+                },
+                "size": "[variables('vmSizeDocker02')]",
+                "userName": "[parameters('userName')]",
+                "password": "[parameters('password')]",
+                "isAuthenticationWithSshKey": false,
+                "artifacts": [
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-7zip')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-chrome')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-git')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-vscode')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-firefox')]"
+                    }
+                ],
+                "labSubnetName": "[variables('labSubnetName')]",
+                "disallowPublicIpAddress": false,
+                "storageType": "Premium",
+                "allowClaim": false
+            },
+            "dependsOn": [
+                "[parameters('labName')]",
+                "[concat('Dtl', parameters('labName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.DevTestLab/labs/virtualmachines",
+            "name": "[variables('vmNameDokcer01')]",
+            "apiVersion": "2016-05-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+                "notes": "Windows Server 2016 Datacenter",
+                "galleryImageReference": {
+                    "offer": "WindowsServer",
+                    "publisher": "MicrosoftWindowsServer",
+                    "sku": "2016-Datacenter",
+                    "osType": "Windows",
+                    "version": "latest"
+                },
+                "size": "[variables('vmSizeDocker01')]",
+                "userName": "[parameters('userName')]",
+                "password": "[parameters('password')]",
+                "isAuthenticationWithSshKey": false,
+                "artifacts": [
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-7zip')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-chrome')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-git')]"
+                    },
+                    {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
+            "parameters": [
+              {
+                "name": "scriptFileUris",
+                "value": "[[\"http://test\"]"
+              },
+              {
+                "name": "scriptToRun",
+                "value": "disableDefender.ps1"
+              },
+              {
+                "name": "scriptArguments",
+                "value": ""
+              }
+            ]
+          },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-chocolatey')]",
+                        "parameters": [
+                            {
+                                "name": "packages",
+                                "value": "visualstudio2015community"
+                            }
+                        ]
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-vscode')]"
+                    },
+                    {
+                        "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-create-url-shortcut')]",
+                        "parameters": [
+                            {
+                                "name": "ShortcutName",
+                                "value": "Azure Portal - Shortcut"
+                            },
+                            {
+                                "name": "ShortcutTargetPath",
+                                "value": "http://portal.azure.com"
+                            }
+                        ]
+                    }
+                ],
+                "labSubnetName": "[variables('labSubnetName')]",
+                "disallowPublicIpAddress": false,
+                "storageType": "Premium",
+                "allowClaim": false
+            },
+            "dependsOn": [
+                "[parameters('labName')]",
+                "[concat('Dtl', parameters('labName'))]"
+            ]
         }
-    ]
+    ],
+    "outputs": {}
 }
