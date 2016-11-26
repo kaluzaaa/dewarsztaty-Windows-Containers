@@ -158,23 +158,6 @@
               }
             ]
           },
-          {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
-            "parameters": [
-              {
-                "name": "scriptFileUris",
-                "value": "[[\"https://raw.githubusercontent.com/kaluzaaa/dewarsztaty-Windows-Containers/master/templates/installVsCommunity2015.ps1\"]"
-              },
-              {
-                "name": "scriptToRun",
-                "value": "installVsCommunity2015.ps1"
-              },
-              {
-                "name": "scriptArguments",
-                "value": ""
-              }
-            ]
-          },
                     
                     {
                         "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-vscode')]"
@@ -191,7 +174,24 @@
                                 "value": "http://portal.azure.com"
                             }
                         ]
-                    }
+                    },
+                    {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
+            "parameters": [
+              {
+                "name": "scriptFileUris",
+                "value": "[[\"https://raw.githubusercontent.com/kaluzaaa/dewarsztaty-Windows-Containers/master/templates/installVsCommunity2015.ps1\"]"
+              },
+              {
+                "name": "scriptToRun",
+                "value": "installVsCommunity2015.ps1"
+              },
+              {
+                "name": "scriptArguments",
+                "value": ""
+              }
+            ]
+          },
                 ],
                 "labSubnetName": "[variables('labSubnetName')]",
                 "disallowPublicIpAddress": false,
