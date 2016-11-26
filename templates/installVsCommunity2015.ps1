@@ -1,12 +1,13 @@
-Write-Output "[$(Get-Date)] ========== Start =========="
-$url = "https://lkdwhsrc.blob.core.windows.net/artifact-repository/vs2015.3.com_enu.iso"
+Write-Output "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss" )] ========== Start =========="
+$url = "https://lkdevtestlab01.blob.core.windows.net/artifact/vs2015.3.com_enu.iso"
 $output = "D:\vs2015.3.com_enu.iso"
-Write-Output "[$(Get-Date)] File download"
-Invoke-WebRequest -Uri $url -OutFile $output
-Write-Output "[$(Get-Date)] File downloaded"
-Write-Output "[$(Get-Date)] Mount iso"
+Write-Output "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss" )] Start file download"
+$wc = New-Object System.Net.WebClient
+$wc.DownloadFile($url, $output)
+Write-Output "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss" )] End file download"
+Write-Output "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss" )] Mount iso"
 $mountResult =  Mount-DiskImage D:\vs2015.3.com_enu.iso -PassThru
 $DriveLetter = ($mountResult | Get-Volume).DriveLetter
-Write-Output "[$(Get-Date)] Start install"
-$cmd = Start-Process "${DriveLetter}:\vs_community.exe" -Wait -ArgumentList /q,/Norestart
-Write-Output "[$(Get-Date)] Install process exit code $($cmd.ExitCode)"
+Write-Output "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss" )] Start install"
+$cmd = Start-Process "C:\vs2015\vs_community.exe" -Wait -ArgumentList /q,/Norestart,"/AdminFile C:\vs2015\AdminDeployment.xml" -PassThru
+Write-Output "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss" )] Install process exit code $($cmd.ExitCode)"
