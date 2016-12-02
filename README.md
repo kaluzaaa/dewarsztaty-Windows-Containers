@@ -2,9 +2,9 @@
 
 ##Przygotowanie środowiska
 	
-1. Założenie konta Microsoft Account -[http://outlook.com](http://outlook.com).
-2. Aktywacja konta Azure z AzurePass - [link](https://www.microsoftazurepass.com/).
-3. Instalacja środowsika w Azure z szablonu. Klikamy na przycisk **Deploy to Azure** poniżej. Przy wypełnianiu parametrów wdrożenia w polu **Resource group** wybieramy **Create new** i wpisujemy **devwarsztaty** oraz jako **Location** ustawiamy **West Europe**.
+1. Założenie konta Microsoft Account -[http://outlook.com](http://outlook.com)
+2. Aktywacja konta Azure z AzurePass - [link](https://www.microsoftazurepass.com/)
+3. Instalacja środowsika w Azure z szablonu. Klikamy na przycisk **Deploy to Azure** poniżej. Przy wypełnianiu parametrów wdrożenia w polu **Resource group** wybieramy **Create new** i wpisujemy **devwarsztaty** oraz jako **Location** ustawiamy **West Europe**
 
 	<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkaluzaaa%2Fdewarsztaty-Windows-Containers%2Fmaster%2Ftemplates%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
@@ -12,7 +12,9 @@
 
 ##Instalacja Docker na Windows Server
 
-Na serwerze docker02 instalujemy Windows Containers i silnik Docker.
+**VM: Docker02**
+
+Na serwerze instalujemy Windows Containers i silnik Docker
 
 ```powershell
 Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
@@ -34,23 +36,38 @@ Uruchomienie testowego kontenera
 docker run microsoft/dotnet-samples:dotnetapp-nanoserver
 ```
 
-##Uruchomienie kontenera z IIS
+##Pierwszy kontener
 
-Na serwerze docker02.
+```
+docker run microsoft/windowsservercore hostname
+```
+
+```
+docker  run microsoft/windowsservercore cmd
+```
+
+```
+docker  run -it microsoft/windowsservercore cmd
+```
+
+##Uruchomienie kontenera z IIS
+**VM: Docker02**
+
+Na serwerze
 
 ```
 docker run -d --name iis01 -p 80:80 microsoft/iis cmd
 ```
 
-Sprawdź adres ip kontenera.
+Sprawdź adres ip kontenera
 
 ```
 docker inspect -f "{{ .NetworkSettings.Networks.nat.IPAddress }}" iis01
 ```
 
-Sprawdź stronę na porcie 80 korzystając z wcześniej sprawdzonego IP.
+Sprawdź stronę na porcie 80 korzystając z wcześniej sprawdzonego IP
 
-Podłącz się do kontenera.
+Podłącz się do kontenera
 
 ```
 docker exec -it iis01 cmd
@@ -64,7 +81,7 @@ del C:\inetpub\wwwroot\iisstart.htm
 echo "Hello World From a Windows Server Container" > C:\inetpub\wwwroot\index.html
 ```
 
-Odśwież stronę.
+Odśwież stronę
 
 ```
 exit
@@ -83,6 +100,7 @@ docker stop iis01
 ```
 
 ##Tworzenie własnego obrazu ręcznie
+**VM: Docker02**
 
 Stworzenie obrazu z istniejącego kontenera
 
@@ -98,7 +116,6 @@ docker images
 
 Stworzenie obrazu z przypisaniem taga
 
-
 ```
 docker commit iis01 modified-iis:test
 ```
@@ -110,3 +127,124 @@ docker images
 ```
 
 ##Tworzenie własnego obrazu z Dockerfile
+**VM: Docker02**
+
+Uruchom Visual Studio Code i wciśnij Crtl+Shift+P i wpisz ext install, enter. Wyszukaj **docker support** i zainstaluj rozszerzenie.
+
+Utwórz folder **C:\own-iis** i w nim plik **Dockerfile**
+
+Zawartość pliku:
+
+```
+FROM microsoft/windowsservercore
+CMD echo Hello World!
+```
+
+Polecenie wykonujemy będąc w katalogu **C:\own-iis**
+
+```
+docker build -t own-iis:1 .
+```
+
+```
+docker run own-iis:1
+```
+
+Stwórz w katalogu **C:\own-iis** plik index.html z dowolną zawartością np.
+
+```
+<h1>devwarsztaty</h1>
+```
+
+```
+FROM microsoft/windowsservercore
+SHELL ["powershell"]
+RUN Install-WindowsFeature -name Web-Server
+RUN Install-WindowsFeature NET-Framework-45-ASPNET  
+RUN Install-WindowsFeature Web-Asp-Net45
+COPY index.html C:\\inetpub\\wwwroot
+EXPOSE 80
+CMD ["ping", "-t", "localhost"]
+```
+
+```
+docker build -t own-iis:2 .
+```
+
+```
+docker run -p 80:80 own-iis:2
+```
+
+```
+docker run -d -p 80:80 own-iis:2
+```
+
+```
+FROM microsoft/windowsservercore
+SHELL ["powershell"]
+RUN Install-WindowsFeature -name Web-Server
+RUN Install-WindowsFeature NET-Framework-45-ASPNET  
+RUN Install-WindowsFeature Web-Asp-Net45
+COPY index.html C:\\inetpub\\wwwroot
+ENV URL=https://raw.githubusercontent.com/kaluzaaa/dewarsztaty-Windows-Containers/master/README.md
+ADD $URL C:\\inetpub\\wwwroot
+EXPOSE 80
+CMD ["ping", "-t", "localhost"]
+```
+
+```
+docker build -t own-iis:3 .
+```
+
+```
+docker run -p 80:80 own-iis:3 cmd
+```
+
+```
+docker attach <id kontenera>
+```
+
+```
+FROM microsoft/windowsservercore
+ENV URL=https://raw.githubusercontent.com/kaluzaaa/dewarsztaty-Windows-Containers/master/README.md
+SHELL ["powershell"]
+RUN Install-WindowsFeature -name Web-Server; \
+		Install-WindowsFeature NET-Framework-45-ASPNET; \  
+		Install-WindowsFeature Web-Asp-Net45
+COPY index.html C:\\inetpub\\wwwroot
+ADD $URL C:\\inetpub\\wwwroot
+EXPOSE 80
+CMD ["ping", "-t", "localhost"]
+```
+
+
+```
+docker build -t own-iis:4 .
+```
+
+```
+docker run -p 80:80 own-iis:4 cmd
+```
+
+##Azure Container Registry
+
+Tworzymy nowy prywatny rejestr w Azure - [link](https://portal.azure.com/#create/Microsoft.ContainerRegistry)
+
+![Azure Container Registry](files/Container_Registry_-_Microsoft_Azure.png)
+
+##VSTS
+**VM: Docker02**
+
+Przez PowerShell uruchamiamy dostęp zdalny do hosta
+
+```
+# Open firewall port 2375
+netsh advfirewall firewall add rule name="docker engine" dir=in action=allow protocol=TCP localport=2375
+
+# Configure Docker daemon to listen on both pipe and TCP (replaces docker --register-service invocation above)
+Stop-Service docker
+dockerd --unregister-service
+dockerd -H npipe:// -H 0.0.0.0:2375 --register-service
+Start-Service docker
+```
+
