@@ -223,14 +223,114 @@ docker build -t own-iis:4 .
 ```
 
 ```
-docker run -p 80:80 own-iis:4 cmd
+docker run -d -p 80:80 own-iis:4
 ```
+
+##Dockerfile i własna aplikacja
+
+**VM: Docker01**
+
+Zainstaluj na Docker na Docker01.
+
+Utwórz nowy projekt w Visual Studio:
+
+- Visual C# \ Web \ ASP .NET Web Application
+- Wyłącz Application Insights
+- Wersja .NET 4.5.2
+- Authentication: No authentication
+- Template: MVC
+
+Zrób publikację do C:\dockerApp\webapp
+
+W C:\dockerApp stwórz plik Dockerfile
+
+```
+FROM microsoft/aspnet
+COPY webapp C:\\inetpub\\wwwroot
+EXPOSE 80
+```
+
+```
+docker build -t mvc_demo .
+```
+
+```
+docker run -d mvc_demo
+```
+
+Sprawdź stronę :-)
+
+##Persystencja danych
+**VM: Docker01**
+
+```
+docker run -d -v C:/dockerApp/webapp:C:/inetpub/wwwroot microsoft/aspnet
+```
+
+Sprawdź stronę
+
+Skasuj zawartość C:\dockerApp\webapp i stwórz plik index.html z dowolną zawartością np.
+
+```
+<h1>devwarsztaty</h1>
+```
+
+Sprawdź stronę
 
 ##Azure Container Registry
 
-Tworzymy nowy prywatny rejestr w Azure - [link](https://portal.azure.com/#create/Microsoft.ContainerRegistry)
+Tworzymy nowy prywatny rejestr w Azure w regionie **East US**
+
+<a href="https://portal.azure.com/#create/Microsoft.ContainerRegistry" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
 
 ![Azure Container Registry](files/Container_Registry_-_Microsoft_Azure.png)
+
+**VM: Docker02**
+
+Zalogowanie się do rejestru
+
+```
+docker login <URL rejestru z portalu, kończy się na .azurecr.io> -u <użytkownik> -p <hasło>
+```
+
+Wyszukanie id obrazu do wypchnięcia
+
+```
+docker images
+```
+
+Otagowanie obrazu
+
+```
+docker tag <id obrazu> <URL rejestru>/demo/own-iis:latest
+```
+
+Wypchnięcie do rejestru
+
+```
+docker push <URL rejestru>/demo/own-iis:latest
+```
+
+Skasowanie wypchniętego obrazu z lokalnego hosta
+
+```
+docker rmi -f <id obrazu>
+```
+
+Pobranie korzystając z rejestru
+
+```
+docker pull <URL rejestru>/demo/own-iis:latest
+```
+
+Uruchomianie kontenera korzystając z rejestru
+
+```
+docker run -d -p 80:80 <URL rejestru>/demo/own-iis:latest
+```
+
 
 ##VSTS
 **VM: Docker02**
