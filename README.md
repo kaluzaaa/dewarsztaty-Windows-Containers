@@ -409,7 +409,7 @@ Nowy build definition ASP.NET Build (PREVIEW)
 
 **Build solution** ->
 **MSBuild Arguments:** 
-/p:DeployOnBuild=True /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem  /p:DeleteExistingFiles=True  /p:publishUrl="$(build.artifactstagingdirectory)\\"
+/p:DeployOnBuild=True /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem  /p:DeleteExistingFiles=True  /p:publishUrl="$(build.artifactstagingdirectory)\\\\”
 
 Wykonaj build
 
