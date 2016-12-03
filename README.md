@@ -380,6 +380,8 @@ docker run -d -p 80:80 <URL rejestru>/demo/own-iis:latest
 ##VSTS
 **VM: Docker01**
 
+Zainstaluj lokalnie build agenta VSTS
+
 Utwórz nowy projekt w Visual Studio:
 
 - Visual C# \ Web \ ASP .NET Web Application
@@ -387,6 +389,14 @@ Utwórz nowy projekt w Visual Studio:
 - Wersja .NET 4.5.2
 - Authentication: No authentication
 - Template: MVC
+
+Dodaj do projektu Dockerfile
+
+```
+FROM microsoft/aspnet
+COPY . C:\\inetpub\\wwwroot
+EXPOSE 80
+```
 
 Podłącz się do Team Services w Visual Studio
 
@@ -396,4 +406,11 @@ Zainstaluj w VSTS - [Docker for VSTS](https://marketplace.visualstudio.com/items
 
 Nowy build definition ASP.NET Build (PREVIEW)
 
+**Build solution** ->
+**MSBuild Arguments:** 
+/p:DeployOnBuild=True /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem  /p:DeleteExistingFiles=True  /p:publishUrl="$(build.artifactstagingdirectory)\\"
+
+Wykonaj build
+
+Dodaj taski Docker - Build i Push
 
