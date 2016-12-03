@@ -260,7 +260,7 @@ docker run -d mvc_demo
 
 Sprawdź stronę :-)
 
-##Persystencja danych
+##Persystencja danych - mapowanie folderów z hosta
 **VM: Docker01**
 
 ```
@@ -276,6 +276,51 @@ Skasuj zawartość C:\dockerApp\webapp i stwórz plik index.html z dowolną zawa
 ```
 
 Sprawdź stronę
+
+##docker-compose
+**VM: Docker01**
+
+Instalacja docker-compose
+
+```
+Invoke-WebRequest https://dl.bintray.com/docker-compose/master/docker-compose-Windows-x86_64.exe -UseBasicParsing -OutFile $env:ProgramFiles\docker\docker-compose.exe
+```
+
+Sklonowanie dema na C:\
+
+
+```
+git clone https://github.com/kaluzaaa/MusicStore
+```
+
+Zbudowanie aplikacji
+
+```
+docker-compose -f .\docker-compose.windows.yml build
+```
+
+Uruchomienie aplikacji
+
+```
+docker-compose -f .\docker-compose.windows.yml up
+```
+
+##Hostname i NAT
+**VM: Docker01**
+
+Wyłącz Firewall w Windows (normalnie robi się reguły)
+
+```
+docker run -d -h <twoj_hostname> -v C:/dockerApp/webapp:C:/inetpub/wwwroot microsoft/aspnet
+```
+
+Sprawdź przez przeglądarkę używając *<twoj_hostname>*
+
+```
+docker run -d -p 83:80 -v C:/dockerApp/webapp:C:/inetpub/wwwroot microsoft/aspnet
+```
+
+Z maszyny **dokcer02** sprawdź przez przeglądarkę używając ip publicznego **docker01** i portu **83**
 
 ##Azure Container Registry
 
@@ -333,18 +378,22 @@ docker run -d -p 80:80 <URL rejestru>/demo/own-iis:latest
 
 
 ##VSTS
-**VM: Docker02**
+**VM: Docker01**
 
-Przez PowerShell uruchamiamy dostęp zdalny do hosta
+Utwórz nowy projekt w Visual Studio:
 
-```
-# Open firewall port 2375
-netsh advfirewall firewall add rule name="docker engine" dir=in action=allow protocol=TCP localport=2375
+- Visual C# \ Web \ ASP .NET Web Application
+- Wyłącz Application Insights
+- Wersja .NET 4.5.2
+- Authentication: No authentication
+- Template: MVC
 
-# Configure Docker daemon to listen on both pipe and TCP (replaces docker --register-service invocation above)
-Stop-Service docker
-dockerd --unregister-service
-dockerd -H npipe:// -H 0.0.0.0:2375 --register-service
-Start-Service docker
-```
+Podłącz się do Team Services w Visual Studio
+
+Utwórz z projektu WebApplication projekt w VSTS i zrób pierwszy commit.
+
+Zainstaluj w VSTS - [Docker for VSTS](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.docker)
+
+Nowy build definition ASP.NET Build (PREVIEW)
+
 
