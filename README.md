@@ -376,6 +376,7 @@ Uruchomianie kontenera korzystając z rejestru
 docker run -d -p 80:80 <URL rejestru>/demo/own-iis:latest
 ```
 
+[Strona do podglądu ACR](https://acrwebmanagerdemo.azurewebsites.net/)
 
 ##VSTS
 **VM: Docker01**
