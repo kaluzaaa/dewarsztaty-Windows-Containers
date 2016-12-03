@@ -180,6 +180,10 @@ docker run -d -p 80:80 own-iis:2
 ```
 
 ```
+docker attach <id kontenera>
+```
+
+```
 FROM microsoft/windowsservercore
 SHELL ["powershell"]
 RUN Install-WindowsFeature -name Web-Server
@@ -198,10 +202,6 @@ docker build -t own-iis:3 .
 
 ```
 docker run -p 80:80 own-iis:3 cmd
-```
-
-```
-docker attach <id kontenera>
 ```
 
 ```
